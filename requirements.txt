@@ -1,8 +1,5 @@
 streamlit
 yfinance
-pandas>=2.0.0
-numpy>=1.26.0
 plotly
-scikit-learn
-ta-lib-binary
-requests
+pandas
+numpy
