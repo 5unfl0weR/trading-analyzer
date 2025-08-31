@@ -18,7 +18,7 @@ def main():
     st.sidebar.title("Navigation")
     page = st.sidebar.selectbox(
         "Choose Analysis Type",
-        ["Home", "Stocks", "Options", "Futures"]
+        ["Home", "Stocks", "Options", "Futures", "📸 Chart Analysis"]
     )
     
     # Route to appropriate page
@@ -30,11 +30,13 @@ def main():
         options_page()
     elif page == "Futures":
         futures_page()
+    elif page == "📸 Chart Analysis":
+        chart_analysis_page()
 
 def home_page():
     st.header("Welcome to AI Trading Analyzer")
     
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     
     with col1:
         st.subheader("📈 Stocks")
@@ -48,8 +50,120 @@ def home_page():
         st.subheader("🚀 Futures")
         st.write("Trade futures with advanced analytics")
     
+    with col4:
+        st.subheader("📸 Chart Analysis")
+        st.write("Upload chart screenshots for AI analysis")
+    
     st.markdown("---")
     st.info("👈 Use the sidebar to navigate to different analysis tools")
+
+def chart_analysis_page():
+    """New chart analysis page for uploaded images."""
+    from chart_analyzer import ChartAnalyzer
+    
+    st.header("📸 Chart Analysis")
+    st.write("Upload a futures chart screenshot and get AI-powered trading recommendations!")
+    
+    # Initialize analyzer
+    analyzer = ChartAnalyzer()
+    
+    # File uploader
+    uploaded_file = st.file_uploader(
+        "Upload Chart Image", 
+        type=['png', 'jpg', 'jpeg'],
+        help="Upload a clear chart screenshot for analysis"
+    )
+    
+    if uploaded_file is not None:
+        with st.spinner("🤖 Analyzing your chart..."):
+            # Analyze the chart
+            results = analyzer.analyze_uploaded_chart(uploaded_file)
+        
+        if results:
+            # Display results
+            st.markdown("---")
+            
+            # Main signal
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                signal = results["overall_signal"]
+                signal_color = "green" if "BUY" in signal else "red" if "SELL" in signal else "orange"
+                st.markdown(f"### :{signal_color}[{signal}]")
+                st.metric("Signal", signal)
+            
+            with col2:
+                confidence = results["confidence"]
+                st.metric("Confidence", f"{confidence}%")
+                
+                # Confidence bar
+                st.progress(confidence / 100)
+            
+            with col3:
+                trend = results["trend_direction"]
+                trend_color = "green" if "UP" in trend else "red" if "DOWN" in trend else "gray"
+                st.markdown(f"**Trend:** :{trend_color}[{trend}]")
+            
+            # Detailed analysis
+            st.markdown("---")
+            st.subheader("📊 Detailed Analysis")
+            
+            # Recommendation
+            st.info(f"**Recommendation:** {results['recommendation']}")
+            
+            # Technical insights
+            if results.get("technical_analysis"):
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.subheader("🎯 Technical Insights")
+                    insights = results["technical_analysis"]
+                    
+                    if "trend_analysis" in insights:
+                        st.write(f"**Trend:** {insights['trend_analysis']}")
+                    
+                    if "pattern_analysis" in insights:
+                        st.write(f"**Patterns:** {insights['pattern_analysis']}")
+                    
+                    if "risk_management" in insights:
+                        st.write(f"**Risk:** {insights['risk_management']}")
+                
+                with col2:
+                    st.subheader("🔍 Detected Elements")
+                    
+                    # Patterns
+                    if results["patterns_detected"]:
+                        st.write("**Patterns Found:**")
+                        for pattern in results["patterns_detected"]:
+                            st.write(f"• {pattern}")
+                    
+                    # Support/Resistance
+                    if results["support_resistance"]:
+                        st.write("**Key Levels:**")
+                        for level in results["support_resistance"][:3]:
+                            st.write(f"• {level['level']} (Strength: {level['strength']})")
+            
+            # Risk warning
+            st.markdown("---")
+            st.warning("⚠️ **Risk Warning:** This analysis is for educational purposes only. Always do your own research and consider your risk tolerance before trading.")
+    
+    else:
+        # Instructions
+        st.markdown("### How to use:")
+        st.write("""
+        1. **Take a screenshot** of your futures chart from your trading platform
+        2. **Upload the image** using the file uploader above
+        3. **Get instant AI analysis** with buy/sell recommendations
+        4. **Review the technical insights** and confidence levels
+        """)
+        
+        st.markdown("### Best practices for chart uploads:")
+        st.write("""
+        - Use **clear, high-resolution** screenshots
+        - Include **price action** and **timeframe** visible
+        - **Candlestick or line charts** work best
+        - Avoid charts with too many overlapping indicators
+        """)
 
 def stocks_page():
     import yfinance as yf
